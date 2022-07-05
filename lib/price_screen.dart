@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'coin_data.dart';
 import 'package:flutter/cupertino.dart';
+import 'dart:io' show Platform;
 
 class PriceScreen extends StatefulWidget {
   @override
@@ -10,7 +11,7 @@ class PriceScreen extends StatefulWidget {
 class _PriceScreenState extends State<PriceScreen> {
   String? startingcurrency = 'USD';
 
-  DropdownButton<String> getdropdownbutton() {
+  DropdownButton<String> AndroidDropdown() {
     List<DropdownMenuItem<String>> list = [];
 
     for (int i = 0; i < currenciesList.length; i++) {
@@ -30,7 +31,7 @@ class _PriceScreenState extends State<PriceScreen> {
     );
   }
 
-  CupertinoPicker getforios() {
+  CupertinoPicker IosPicker() {
     List<Text> list = [];
 
     for (int i = 0; i < currenciesList.length; i++) {
@@ -45,6 +46,13 @@ class _PriceScreenState extends State<PriceScreen> {
       },
       children: list,
     );
+  }
+
+  Widget getpicker() {
+    if (Platform.isAndroid)
+      return AndroidDropdown();
+    else
+      return IosPicker();
   }
 
   @override
@@ -83,7 +91,7 @@ class _PriceScreenState extends State<PriceScreen> {
             alignment: Alignment.center,
             padding: EdgeInsets.only(bottom: 30.0),
             color: Colors.lightBlue,
-            child: null,
+            child: getpicker(),
           ),
         ],
       ),
