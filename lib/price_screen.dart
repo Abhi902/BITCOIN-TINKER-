@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'coin_data.dart';
 import 'package:flutter/cupertino.dart';
+import 'coin_data.dart';
 import 'dart:io' show Platform;
 
 class PriceScreen extends StatefulWidget {
@@ -9,50 +9,72 @@ class PriceScreen extends StatefulWidget {
 }
 
 class _PriceScreenState extends State<PriceScreen> {
-  String? startingcurrency = 'USD';
+  //6: Update the default currency to AUD, the first item in the currencyList.
+  String? selectedCurrency = 'AUD';
 
-  DropdownButton<String> AndroidDropdown() {
-    List<DropdownMenuItem<String>> list = [];
-
-    for (int i = 0; i < currenciesList.length; i++) {
-      var widgets = DropdownMenuItem(
-          child: Text(currenciesList[i]), value: currenciesList[i]);
-      list.add(widgets);
+  DropdownButton<String> androidDropdown() {
+    List<DropdownMenuItem<String>> dropdownItems = [];
+    for (String currency in currenciesList) {
+      var newItem = DropdownMenuItem(
+        child: Text(currency),
+        value: currency,
+      );
+      dropdownItems.add(newItem);
     }
 
     return DropdownButton<String>(
-      value: startingcurrency,
-      items: list,
+      value: selectedCurrency,
+      items: dropdownItems,
       onChanged: (value) {
         setState(() {
-          startingcurrency = value;
+          selectedCurrency = value;
+          //2: Call getData() when the picker/dropdown changes.
+          getData();
         });
       },
     );
   }
 
-  CupertinoPicker IosPicker() {
-    List<Text> list = [];
-
-    for (int i = 0; i < currenciesList.length; i++) {
-      Text s = Text(currenciesList[i]);
-      list.add(s);
+  CupertinoPicker iOSPicker() {
+    List<Text> pickerItems = [];
+    for (String currency in currenciesList) {
+      pickerItems.add(Text(currency));
     }
 
     return CupertinoPicker(
-      itemExtent: 32,
+      backgroundColor: Colors.lightBlue,
+      itemExtent: 32.0,
       onSelectedItemChanged: (selectedIndex) {
         print(selectedIndex);
+        setState(() {
+          //1: Save the selected currency to the property selectedCurrency
+          selectedCurrency = currenciesList[selectedIndex];
+          //2: Call getData() when the picker/dropdown changes.
+          getData();
+        });
       },
-      children: list,
+      children: pickerItems,
     );
   }
 
-  Widget getpicker() {
-    if (Platform.isAndroid)
-      return AndroidDropdown();
-    else
-      return IosPicker();
+  String bitcoinValue = '?';
+
+  void getData() async {
+    try {
+      //We're now passing the selectedCurrency when we call getCoinData().
+      var data = await CoinData().getCoinData(selectedCurrency);
+      setState(() {
+        bitcoinValue = data;
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getData();
   }
 
   @override
@@ -76,7 +98,8 @@ class _PriceScreenState extends State<PriceScreen> {
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
                 child: Text(
-                  '1 BTC = ? USD',
+                  //5: Update the currency name depending on the selectedCurrency.
+                  '1 BTC = $bitcoinValue $selectedCurrency',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 20.0,
@@ -91,7 +114,7 @@ class _PriceScreenState extends State<PriceScreen> {
             alignment: Alignment.center,
             padding: EdgeInsets.only(bottom: 30.0),
             color: Colors.lightBlue,
-            child: getpicker(),
+            child: Platform.isIOS ? iOSPicker() : androidDropdown(),
           ),
         ],
       ),
